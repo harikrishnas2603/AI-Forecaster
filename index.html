@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Sales Forecaster</title>
+
+    <!-- 1. Modern Font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- 2. Enhanced Custom Styles -->
+    <style>
+        /* --- START: Olive Green Theme Change --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            /* A beautiful olive green gradient */
+            background-color: #556B2F;
+            background-image: linear-gradient(180deg, #3D402D 0%, #556B2F 100%);
+            color: #F5F5DC; /* Beige text for better contrast */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        /* --- END: Olive Green Theme Change --- */
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            color: #DAA520; /* Goldenrod active color for new theme */
+            border-bottom-color: #DAA520;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-image: linear-gradient(to right, #6B8E23, #9ACD32); /* OliveDrab to YellowGreen */
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(107, 142, 35, 0.5);
+        }
+
+        .loader {
+            border: 4px solid #93987c;
+            border-top: 4px solid #DAA520;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .card-bg {
+            background-color: rgba(255, 255, 255, 0.05); /* Translucent effect */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(245, 245, 220, 0.15); /* Beige-toned border */
+        }
+
+        /* Dark Mode Styles (Remains dark blue/black) */
+        .dark {
+            background-color: #0a0a0a;
+            background-image: linear-gradient(180deg, #0a0a0a 0%, #111827 100%);
+            color: #d1d5db;
+        }
+        .dark .card-bg {
+             background-color: rgba(17, 24, 39, 0.7);
+             border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dark .text-gray-400 { color: #9ca3af; }
+        .dark .border-gray-200 { border-color: #374151; }
+        .dark .nav-tab.active { color: #a5b4fc; border-bottom-color: #a5b4fc; }
+        .dark input, .dark select {
+            background-color: #374151;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+        .dark .bg-indigo-100 { background-color: #3730a3; }
+        .dark .text-indigo-800 { color: #c7d2fe; }
+        .dark .bg-green-100 { background-color: #14532d; }
+        .dark .text-green-800 { color: #bbf7d0; }
+        .dark .bg-purple-100 { background-color: #581c87; }
+        .dark .text-purple-800 { color: #e9d5ff; }
+        .dark tr.bg-gray-50 { background-color: #374151; }
+        .dark .file\:bg-indigo-50 { background-color: #3730a3; }
+        .dark .file\:text-indigo-700 { color: #e0e7ff; }
+        .dark .bg-emerald-100 { background-color: #064e3b; }
+        .dark .text-emerald-800 { color: #a7f3d0; }
+        .dark .bg-cyan-100 { background-color: #155e75; }
+        .dark .text-cyan-800 { color: #a5f3fc; }
+        .dark .bg-blue-100 { background-color: #1e40af; }
+        .dark .text-blue-800 { color: #bfdbfe; }
+        .dark .text-gray-900 { color: #f9fafb; }
+        .dark .text-gray-500 { color: #9ca3af; }
+        .dark .bg-gray-100 { background-color: #374151; }
+    </style>
+</head>
+
+<body class="text-gray-200">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between py-4 mb-8">
+        <div class="flex items-center gap-3">
+            <svg class="h-8 w-8 text-yellow-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span class="text-2xl font-bold">AI Forecaster</span>
+        </div>
+        <div class="text-sm bg-green-900 bg-opacity-50 text-green-200 px-3 py-1 rounded-full font-medium">v3.0</div>
+    </header>
+
+    <!-- Nav Tabs -->
+    <nav class="flex gap-6 mb-10 text-sm font-semibold border-b border-gray-200 border-opacity-20">
+      <div class="nav-tab active cursor-pointer" data-tab="home">Home</div>
+      <div class="nav-tab cursor-pointer" data-tab="upload">Upload Data</div>
+      <div class="nav-tab cursor-pointer" data-tab="forecast">AI Forecast</div>
+      <div class="nav-tab cursor-pointer" data-tab="scope">Future Scope</div>
+    </nav>
+
+    <!-- Tab Content Container -->
+    <div id="tab-content">
+      <!-- Home Section -->
+      <section id="home" class="fade-in">
+        <main class="text-center">
+            <h1 class="text-4xl font-bold mb-4">Future-Proof Your Sales</h1>
+            <p class="text-gray-300 max-w-2xl mx-auto mb-8 text-lg">
+              Upload your historical data and let our AI models generate accurate forecasts to drive smarter business decisions.
+            </p>
+            <div class="flex justify-center gap-4 text-sm">
+              <span class="bg-green-900 bg-opacity-50 text-green-200 px-4 py-2 rounded-full font-medium">⚡ High Accuracy</span>
+              <span class="bg-yellow-900 bg-opacity-50 text-yellow-200 px-4 py-2 rounded-full font-medium">🛡 Enterprise Security</span>
+              <span class="bg-blue-900 bg-opacity-50 text-blue-200 px-4 py-2 rounded-full font-medium">📈 Real-time Insights</span>
+            </div>
+        </main>
+      </section>
+
+      <!-- Upload Section -->
+      <section id="upload" class="hidden fade-in">
+        <div class="card-bg p-8 rounded-xl shadow-lg">
+            <h2 class="section-title justify-center">
+              <svg class="h-8 w-8 text-yellow-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <span>Upload Historical Data</span>
+            </h2>
+            <form id="forecast-form" class="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+              <div>
+                <label for="date_column" class="block text-sm font-medium mb-1">Date Column Name</label>
+                <input id="date_column" type="text" name="date_column" value="date" required class="mt-1 w-full border-gray-500 bg-gray-700 bg-opacity-20 text-white rounded-md shadow-sm px-3 py-2 focus:border-yellow-400 focus:ring-yellow-400" />
+              </div>
+              <div>
+                <label for="value_column" class="block text-sm font-medium mb-1">Value Column Name</label>
+                <input id="value_column" type="text" name="value_column" value="sales" required class="mt-1 w-full border-gray-500 bg-gray-700 bg-opacity-20 text-white rounded-md shadow-sm px-3 py-2 focus:border-yellow-400 focus:ring-yellow-400" />
+              </div>
+              <div>
+                <label for="frequency" class="block text-sm font-medium mb-1">Frequency</label>
+                <select id="frequency" name="frequency" class="mt-1 w-full border-gray-500 bg-gray-700 bg-opacity-20 text-white rounded-md shadow-sm px-3 py-2 focus:border-yellow-400 focus:ring-yellow-400">
+                  <option value="Daily">Daily</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
+              <div>
+                <label for="horizon" class="block text-sm font-medium mb-1">Forecast Horizon</label>
+                <input id="horizon" type="number" name="horizon" value="30" min="1" required class="mt-1 w-full border-gray-500 bg-gray-700 bg-opacity-20 text-white rounded-md shadow-sm px-3 py-2 focus:border-yellow-400 focus:ring-yellow-400" />
+              </div>
+              <div class="md:col-span-2">
+                <label for="file" class="block text-sm font-medium mb-1">Upload Data File</label>
+                <input id="file" type="file" name="file" required class="mt-1 w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-yellow-200 file:text-yellow-900 hover:file:bg-yellow-300 cursor-pointer" />
+              </div>
+              <div class="md:col-span-2 flex justify-center mt-4">
+                <button type="submit" class="btn-primary text-white font-bold px-10 py-3 rounded-lg shadow-md">
+                  Generate Forecast
+                </button>
+              </div>
+            </form>
+        </div>
+      </section>
+
+      <!-- Forecast Output -->
+      <section id="forecast" class="hidden fade-in">
+         <div class="card-bg p-8 rounded-xl shadow-lg">
+            <h2 class="section-title justify-center">
+              <svg class="h-8 w-8 text-yellow-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span>Forecast Results</span>
+            </h2>
+            <div id="results-container" class="mt-6 text-center">
+                <p class="text-gray-400">Results will appear here after running a forecast.</p>
+            </div>
+        </div>
+      </section>
+
+      <!-- Future Scope Section -->
+      <section id="scope" class="hidden fade-in">
+        <div class="card-bg p-8 rounded-xl shadow-lg">
+            <h2 class="section-title justify-center">
+                <svg class="h-8 w-8 text-yellow-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+                <span>Future Scope</span>
+            </h2>
+            <p class="text-gray-400 mb-6">
+              The AI Sales Forecaster is continuously evolving. Below are upcoming enhancements to further empower production planning and decision-making:
+            </p>
+            <ul class="list-disc list-inside text-gray-400 space-y-2 text-left max-w-md mx-auto">
+              <li><strong>Weather-Driven Demand Forecasting</strong></li>
+              <li><strong>AI-Powered Production Scheduling</strong></li>
+              <li><strong>Automated Inventory Optimization</strong></li>
+              <li><strong>Dynamic BOM Mapping</strong></li>
+              <li><strong>Raw Material Shortage Alerts</strong></li>
+              <li><strong>Adaptive Resource Allocation</strong></li>
+              <li><strong>Actionable Insights Dashboard</strong></li>
+            </ul>
+        </div>
+      </section>
+
+      <!-- Chatbot Section (hidden by default) -->
+      <div id="chatbot-modal" class="fixed bottom-24 right-8 z-50 w-96 max-w-full hidden">
+        <section class="fade-in card-bg p-6 rounded-xl shadow-2xl">
+          <h2 class="section-title justify-center mb-2">
+            <span>Chatbot Assistant</span>
+          </h2>
+          <div id="chat-window" class="bg-gray-900 bg-opacity-40 rounded-lg p-4 mb-4 h-64 overflow-y-auto text-sm"></div>
+          <form id="chat-form" class="flex gap-2">
+            <input id="chat-input" type="text" placeholder="Type your message..." class="flex-1 px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-yellow-400" />
+            <button type="submit" class="btn-primary px-6 py-2 rounded-lg font-bold text-white">Send</button>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- Floating Chat Icon -->
+    <button id="chat-float-btn" class="fixed bottom-8 right-8 z-50 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg p-4 flex items-center justify-center" style="box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V10a2 2 0 012-2h2" />
+      </svg>
+    </button>
+
+</div>
+
+<script>
+    const forecastForm = document.getElementById('forecast-form');
+    const resultsContainer = document.getElementById('results-container');
+    const tabs = document.querySelectorAll('.nav-tab');
+    const tabContents = document.querySelectorAll('#tab-content > section');
+
+    // --- TAB NAVIGATION ---
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.getAttribute('data-tab');
+
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            tabContents.forEach(content => {
+                if (content.id === target) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    function showTab(tabId) {
+        document.querySelector(`.nav-tab[data-tab="${tabId}"]`).click();
+    }
+
+    // --- FORM SUBMISSION ---
+    forecastForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        // Switch to forecast tab and show loader
+        showTab('forecast');
+        resultsContainer.innerHTML = `
+            <div class="loader"></div>
+            <p class="text-lg text-gray-400">Training models and generating forecast... This may take a moment.</p>
+        `;
+
+        const formData = new FormData(forecastForm);
+
+        try {
+            const response = await fetch('/api/forecast', {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.detail || 'An unknown error occurred.');
+            }
+            renderResults(result);
+        } catch (error) {
+            resultsContainer.innerHTML = `
+                <div class="bg-red-200 border-l-4 border-red-500 text-red-800 p-4 rounded-md text-left" role="alert">
+                    <p class="font-bold">An Error Occurred</p>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        }
+    });
+
+    // --- RENDER RESULTS ---
+    function renderResults(data) {
+        resultsContainer.innerHTML = ''; // Clear loader
+
+        // Helper to get the correct time unit for the horizon
+        const unitMap = {
+            'Daily': 'Day',
+            'Weekly': 'Week',
+            'Monthly': 'Month'
+        };
+        const unit = unitMap[data.forecast_frequency] || 'Periods';
+        const pluralUnit = data.forecast_horizon > 1 ? unit + 's' : unit;
+
+        // 1. Create Summary Info Cards
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'grid md:grid-cols-3 gap-4 mb-8 text-center';
+        // language=HTML
+        summaryDiv.innerHTML = `
+            <div class="bg-green-900 bg-opacity-50 p-4 rounded-lg">
+                <p class="text-sm text-green-200 font-semibold">Best Performing Model</p>
+                <p class="text-2xl text-green-100 font-bold">${data.best_model}</p>
+            </div>
+            <div class="bg-yellow-900 bg-opacity-50 p-4 rounded-lg">
+                <p class="text-sm text-yellow-200 font-semibold">Model RMSE</p>
+                <p class="text-2xl text-yellow-100 font-bold">${data.rmse_on_test_set}</p>
+            </div>
+            <div class="bg-orange-900 bg-opacity-50 p-4 rounded-lg">
+                <p class="text-sm text-orange-200 font-semibold">Forecast Horizon</p>
+                <p class="text-2xl text-orange-100 font-bold">${data.forecast_horizon} ${pluralUnit}</p>
+            </div>
+        `;
+        resultsContainer.appendChild(summaryDiv);
+
+        // 2. Create the Results Table
+        const table = document.createElement('table');
+        table.className = 'w-full text-sm text-left';
+
+        const thead = document.createElement('thead');
+        thead.className = 'text-xs text-gray-300 uppercase bg-black bg-opacity-20';
+        thead.innerHTML = `
+            <tr>
+                <th scope="col" class="px-6 py-3 rounded-l-lg">Date</th>
+                <th scope="col" class="px-6 py-3 rounded-r-lg text-right">Forecasted Value</th>
+            </tr>
+        `;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        data.forecast_table.forEach((row, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-200 border-opacity-10';
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-medium">${row.date}</td>
+                <td class="px-6 py-4 text-right font-semibold text-yellow-300">${row.forecast}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        resultsContainer.appendChild(table);
+    }
+
+    // --- CHATBOT LOGIC ---
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatWindow = document.getElementById('chat-window');
+
+    function appendMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = sender === 'user' ? 'text-right mb-2' : 'text-left mb-2';
+      msgDiv.innerHTML = `<span class="inline-block px-3 py-2 rounded-lg ${sender === 'user' ? 'bg-yellow-700 text-white' : 'bg-green-800 text-green-100'}">${text}</span>`;
+      chatWindow.appendChild(msgDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    chatForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const message = chatInput.value.trim();
+      if (!message) return;
+      appendMessage('user', message);
+      chatInput.value = '';
+      appendMessage('bot', '...'); // Loading indicator
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const data = await response.json();
+        chatWindow.lastChild.remove(); // Remove loading
+        appendMessage('bot', data.reply);
+      } catch (err) {
+        chatWindow.lastChild.remove();
+        appendMessage('bot', 'Sorry, there was an error.');
+      }
+    });
+
+    // --- FLOATING CHAT ICON LOGIC ---
+    const chatFloatBtn = document.getElementById('chat-float-btn');
+    const chatbotModal = document.getElementById('chatbot-modal');
+    chatFloatBtn.addEventListener('click', () => {
+      chatbotModal.classList.toggle('hidden');
+    });
+
+</script>
+</body>
+</html>
